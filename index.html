@@ -1,31 +1,64 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { background: #000; color: #fff; font-family: sans-serif; text-align: center; }
-        .balance { font-size: 40px; margin-top: 50px; color: #00d2ff; }
-        .shark-btn { width: 200px; margin-top: 50px; cursor: pointer; transition: 0.1s; }
-        .shark-btn:active { transform: scale(0.9); }
-        .btn-blue { background: #3a7bd5; border: none; padding: 15px; color: #fff; border-radius: 10px; width: 80%; margin-top: 20px; }
+        body { background: #0b111a; color: #fff; font-family: 'Segoe UI', sans-serif; text-align: center; margin: 0; padding: 20px; }
+        .balance-card { background: linear-gradient(45deg, #2ecc71, #27ae60); border-radius: 15px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3); }
+        .coin-val { font-size: 30px; font-weight: bold; color: #fff; }
+        .plant-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .plant-card { background: #1c2533; border: 1px solid #34495e; border-radius: 12px; padding: 15px; transition: 0.3s; }
+        .plant-card:hover { border-color: #2ecc71; transform: translateY(-5px); }
+        .plant-emoji { font-size: 40px; margin-bottom: 10px; }
+        .plant-name { font-weight: bold; color: #2ecc71; margin-bottom: 5px; }
+        .income { font-size: 12px; color: #bdc3c7; margin-bottom: 10px; }
+        .buy-btn { background: #2ecc71; color: white; border: none; padding: 10px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; }
+        .buy-btn:active { background: #27ae60; transform: scale(0.95); }
     </style>
 </head>
 <body>
-    <p>AVAILABLE BALANCE</p>
-    <div class="balance" id="bal">2070</div>
-    <img src="https://img.icons8.com/color/200/shark.png" class="shark-btn" onclick="tap()">
-    <br>
-    <button class="btn-blue">WATCH VIDEO (+10)</button>
 
-    <script>
-        let balance = 2070;
-        function tap() {
-            balance += 10;
-            document.getElementById('bal').innerText = balance;
-            window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
-        }
-    </script>
+    <div class="balance-card">
+        <div style="font-size: 14px; opacity: 0.9;">Total Earnings</div>
+        <div class="coin-val">1,250 🪙</div>
+    </div>
+
+    <div class="plant-grid">
+        <div class="plant-card">
+            <div class="plant-emoji">🌱</div>
+            <div class="plant-name">Aloe Vera</div>
+            <div class="income">Income: 10/hr</div>
+            <button class="buy-btn">Buy 500</button>
+        </div>
+
+        <div class="plant-card">
+            <div class="plant-emoji">🌿</div>
+            <div class="plant-name">Money Plant</div>
+            <div class="income">Income: 50/hr</div>
+            <button class="buy-btn">Buy 2k</button>
+        </div>
+
+        <div class="plant-card">
+            <div class="plant-name">Cactus</div>
+            <div class="plant-emoji">🌵</div>
+            <div class="income">Income: 200/hr</div>
+            <button class="buy-btn">Buy 5k</button>
+        </div>
+
+        <div class="plant-card">
+            <div class="plant-emoji">🎋</div>
+            <div class="plant-name">Bamboo</div>
+            <div class="income">Income: 500/hr</div>
+            <button class="buy-btn">Buy 15k</button>
+        </div>
+
+        <div class="plant-card" style="grid-column: span 2;">
+            <div class="plant-emoji">🌻</div>
+            <div class="plant-name" style="color: #f1c40f;">Golden Tree</div>
+            <div class="income">Income: 1500/hr</div>
+            <button class="buy-btn" style="background: #f1c40f; color: #000;">Buy 50k</button>
+        </div>
+    </div>
+
 </body>
 </html>
