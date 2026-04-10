@@ -1,0 +1,12 @@
+{
+  "name": "shark-farming-bot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "telegraf": "^4.12.0",
+    "firebase-admin": "^11.10.1"
+  }
+}
