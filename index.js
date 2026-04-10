@@ -1,12 +1,12 @@
 const { Telegraf, Markup } = require('telegraf');
 const admin = require('firebase-admin');
 
-// আপনার তথ্য
+// --- সেটিংস ---
 const BOT_TOKEN = '8708342878:AAGHQRmd7jesPpzL3gz3g22akf7gjiuk-ag';
 const DB_URL = 'https://shark-bot-c515b-default-rtdb.firebaseio.com';
 const serviceAccount = require("./key.json");
 
-// ফায়ারবেস ডাটাবেস কানেক্ট
+// ফায়ারবেস কানেক্ট করা
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
@@ -17,7 +17,7 @@ if (!admin.apps.length) {
 const db = admin.database();
 const bot = new Telegraf(BOT_TOKEN);
 
-// স্টার্ট কমান্ড - এখানে একটি মেনু আসবে
+// স্টার্ট কমান্ড দিলে ওয়েব অ্যাপ বাটন আসবে
 bot.start(async (ctx) => {
   const userId = ctx.from.id;
   const userRef = db.ref(`users/${userId}`);
@@ -26,49 +26,28 @@ bot.start(async (ctx) => {
   if (!snapshot.exists()) {
     await userRef.set({
       balance: 0,
-      username: ctx.from.username || "Player"
+      username: ctx.from.username || "Player",
+      joinedAt: Date.now()
     });
   }
 
-  return ctx.reply(`স্বাগতম দাদু! 🦈\n\nএটি একটি NotCoin স্টাইল মাইনিং বট। নিচের বাটনে ক্লিক করে শার্ক কয়েন আয় করুন!`, 
+  // এখানে আমরা একটি ওয়েব অ্যাপ বাটন দিচ্ছি
+  return ctx.reply(`স্বাগতম দাদু! 🦈\n\nআপনার শার্ক মাইনিং অ্যাপটি নিচের বাটনে ক্লিক করে চালু করুন।`, 
     Markup.inlineKeyboard([
-      [Markup.button.callback('🪙 Tap to Earn (+10)', 'tap_coin')],
-      [Markup.button.callback('📊 My Balance', 'show_balance')]
+      [Markup.button.webApp('🚀 Launch Shark App', 'https://shark-miner.vercel.app')], // এখানে আপনার অ্যাপের লিঙ্ক হবে
+      [Markup.button.callback('📊 Check Balance', 'show_balance')]
     ])
   );
 });
 
-// ট্যাপ করার মেকানিজম
-bot.action('tap_coin', async (ctx) => {
-  const userId = ctx.from.id;
-  const userRef = db.ref(`users/${userId}/balance`);
-  
-  await userRef.transaction((currentBalance) => {
-    return (currentBalance || 0) + 10;
-  });
-
-  const snapshot = await userRef.once('value');
-  const newBalance = snapshot.val();
-
-  await ctx.answerCbQuery('১০ কয়েন আয় করেছেন! 🪙');
-  
-  return ctx.editMessageText(`মাশাআল্লাহ দাদু! আপনি ট্যাপ করছেন।\n\nআপনার বর্তমান সঞ্চয়: ${newBalance} কয়েন। 💰`, 
-    Markup.inlineKeyboard([
-      [Markup.button.callback('🪙 Tap Again! (+10)', 'tap_coin')],
-      [Markup.button.callback('📊 My Balance', 'show_balance')]
-    ])
-  );
-});
-
-// ব্যালেন্স দেখার অপশন
+// ব্যালেন্স চেক (চ্যাটেই দেখা যাবে)
 bot.action('show_balance', async (ctx) => {
   const userId = ctx.from.id;
   const snapshot = await db.ref(`users/${userId}/balance`).once('value');
   const balance = snapshot.val() || 0;
-  
-  ctx.reply(`দাদু, আপনার মোট ব্যালেন্স: ${balance} শার্ক কয়েন। 🦈`);
-  return ctx.answerCbQuery();
+  ctx.answerCbQuery();
+  ctx.reply(`দাদু, আপনার বর্তমান ব্যালেন্স: ${balance} শার্ক কয়েন। 💰`);
 });
 
 bot.launch();
-console.log("বট গিটহাব থেকে রেন্ডারে সফলভাবে চলছে...");
+console.log("Shark Mini App Bot is running via GitHub & Render...");
