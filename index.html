@@ -1,64 +1,128 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plant Farming Bot</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { background: #0b111a; color: #fff; font-family: 'Segoe UI', sans-serif; text-align: center; margin: 0; padding: 20px; }
-        .balance-card { background: linear-gradient(45deg, #2ecc71, #27ae60); border-radius: 15px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3); }
-        .coin-val { font-size: 30px; font-weight: bold; color: #fff; }
-        .plant-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .plant-card { background: #1c2533; border: 1px solid #34495e; border-radius: 12px; padding: 15px; transition: 0.3s; }
-        .plant-card:hover { border-color: #2ecc71; transform: translateY(-5px); }
-        .plant-emoji { font-size: 40px; margin-bottom: 10px; }
-        .plant-name { font-weight: bold; color: #2ecc71; margin-bottom: 5px; }
-        .income { font-size: 12px; color: #bdc3c7; margin-bottom: 10px; }
-        .buy-btn { background: #2ecc71; color: white; border: none; padding: 10px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; }
-        .buy-btn:active { background: #27ae60; transform: scale(0.95); }
+        body { background: #0b111a; color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 15px; }
+        
+        /* প্রোফাইল কার্ড */
+        .profile-card { 
+            background: linear-gradient(45deg, #2ecc71, #27ae60); 
+            border-radius: 15px; padding: 15px; margin-bottom: 20px; 
+            display: flex; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .user-icon { width: 50px; height: 50px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-right: 15px; border: 1.5px solid white; }
+        .user-name { font-size: 18px; font-weight: bold; margin-bottom: 2px; }
+        
+        /* ব্যালেন্স এবং USDT স্টাইল */
+        .balance-container { font-size: 15px; display: flex; align-items: center; gap: 8px; }
+        .coin-text { color: #f1c40f; font-weight: bold; }
+        .usdt-text { background: rgba(0,0,0,0.2); padding: 2px 8px; border-radius: 8px; font-size: 12px; color: #fff; border: 0.5px solid rgba(255,255,255,0.3); }
+
+        /* প্ল্যান্ট লিস্ট */
+        .plant-list { display: flex; flex-direction: column; gap: 15px; padding-bottom: 40px; }
+        .plant-card { 
+            background: #1c2533; border: 1px solid #34495e; 
+            border-radius: 20px; padding: 15px;
+            display: flex; flex-direction: column; align-items: center;
+            text-align: center;
+        }
+
+        .plant-emoji { font-size: 55px; margin-bottom: 8px; }
+        .plant-name { font-weight: bold; color: #2ecc71; font-size: 19px; margin-bottom: 5px; }
+        .plant-desc { font-size: 13px; color: #bdc3c7; margin-bottom: 12px; line-height: 1.4; }
+        
+        .income-tag { 
+            background: rgba(46, 204, 113, 0.1); color: #2ecc71; 
+            padding: 5px 15px; border-radius: 12px; font-size: 14px; 
+            margin-bottom: 15px; border: 1px solid rgba(46, 204, 113, 0.3);
+        }
+
+        .buy-btn { 
+            background: #2ecc71; color: white; border: none; 
+            padding: 12px; border-radius: 12px; font-size: 16px;
+            font-weight: bold; cursor: pointer; width: 90%;
+        }
+        .buy-btn:active { transform: scale(0.96); }
     </style>
 </head>
 <body>
 
-    <div class="balance-card">
-        <div style="font-size: 14px; opacity: 0.9;">Total Earnings</div>
-        <div class="coin-val">1,250 🪙</div>
+    <div class="profile-card">
+        <div class="user-icon">👤</div>
+        <div class="user-details">
+            <div class="user-name" id="username">Loading...</div>
+            <div class="balance-container">
+                <span class="coin-text">🪙 <span id="balance">0</span></span>
+                <span class="usdt-text">≈ <span id="usdt">0.00</span> USDT</span>
+            </div>
+        </div>
     </div>
 
-    <div class="plant-grid">
+    <div class="plant-list">
         <div class="plant-card">
             <div class="plant-emoji">🌱</div>
             <div class="plant-name">Aloe Vera</div>
-            <div class="income">Income: 10/hr</div>
-            <button class="buy-btn">Buy 500</button>
+            <div class="plant-desc">নতুনদের জন্য সেরা গাছ। সহজে চাষযোগ্য।</div>
+            <div class="income-tag">+10 Coins / hr</div>
+            <button class="buy-btn" onclick="buyPlant(1, 500)">Buy for 500</button>
         </div>
 
         <div class="plant-card">
             <div class="plant-emoji">🌿</div>
             <div class="plant-name">Money Plant</div>
-            <div class="income">Income: 50/hr</div>
-            <button class="buy-btn">Buy 2k</button>
+            <div class="plant-desc">আপনার বাগানের সৌন্দর্য এবং ইনকাম বাড়ান।</div>
+            <div class="income-tag">+50 Coins / hr</div>
+            <button class="buy-btn" onclick="buyPlant(2, 2000)">Buy for 2k</button>
         </div>
 
         <div class="plant-card">
-            <div class="plant-name">Cactus</div>
             <div class="plant-emoji">🌵</div>
-            <div class="income">Income: 200/hr</div>
-            <button class="buy-btn">Buy 5k</button>
+            <div class="plant-name">Cactus</div>
+            <div class="plant-desc">মরুভূমির গাছ, যা দেবে নিয়মিত প্রফিট।</div>
+            <div class="income-tag">+200 Coins / hr</div>
+            <button class="buy-btn" onclick="buyPlant(3, 5000)">Buy for 5k</button>
         </div>
 
         <div class="plant-card">
             <div class="plant-emoji">🎋</div>
             <div class="plant-name">Bamboo</div>
-            <div class="income">Income: 500/hr</div>
-            <button class="buy-btn">Buy 15k</button>
+            <div class="plant-desc">দ্রুত বৃদ্ধি এবং বিশাল ইনকামের সুযোগ।</div>
+            <div class="income-tag">+500 Coins / hr</div>
+            <button class="buy-btn" onclick="buyPlant(4, 15000)">Buy for 15k</button>
         </div>
 
-        <div class="plant-card" style="grid-column: span 2;">
+        <div class="plant-card" style="border-color: #f1c40f;">
             <div class="plant-emoji">🌻</div>
             <div class="plant-name" style="color: #f1c40f;">Golden Tree</div>
-            <div class="income">Income: 1500/hr</div>
-            <button class="buy-btn" style="background: #f1c40f; color: #000;">Buy 50k</button>
+            <div class="plant-desc">সবচেয়ে দামী গাছ, যা দিবে জাদুকরী ইনকাম।</div>
+            <div class="income-tag" style="color: #f1c40f;">+1500 Coins / hr</div>
+            <button class="buy-btn" style="background: #f1c40f; color: #000;" onclick="buyPlant(5, 50000)">Buy for 50k</button>
         </div>
     </div>
 
+    <script>
+        // টেলিগ্রাম থেকে ডাটা নেওয়ার ছোট্ট স্ক্রিপ্ট
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+        document.getElementById('username').innerText = tg.initDataUnsafe.user.first_name || "User";
+
+        // ব্যালেন্স এবং USDT আপডেট করার ফাংশন
+        function updateUI(coins) {
+            document.getElementById('balance').innerText = coins;
+            let usdt = (coins / 1000).toFixed(2); // ১০০০ কয়েন = ১ ডলার ধরে
+            document.getElementById('usdt').innerText = usdt;
+        }
+
+        // শুরুতে ব্যালেন্স ০ দেখাবে
+        updateUI(0);
+
+        function buyPlant(id, price) {
+            alert("Buying Plant " + id + " for " + price + " coins!");
+        }
+    </script>
 </body>
 </html>
