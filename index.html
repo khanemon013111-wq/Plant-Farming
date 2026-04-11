@@ -5,162 +5,189 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Plant Farming Bot</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
     <style>
         body { background: #0b111a; color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 15px; padding-bottom: 100px; }
-        .profile-card { background: linear-gradient(45deg, #2ecc71, #27ae60); border-radius: 15px; padding: 15px; margin-bottom: 20px; display: flex; align-items: center; box-shadow: 0 4px 12px rgba(46, 204, 113, 0.4); }
-        .user-icon { width: 50px; height: 50px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-right: 15px; border: 2px solid white; }
-        .user-name { font-size: 18px; font-weight: bold; }
-        .coin-text { color: #f1c40f; font-weight: bold; font-size: 20px; }
-        
-        .plant-list { display: flex; flex-direction: column; gap: 20px; }
-        .plant-card { background: #1c2533; border: 1.5px solid #34495e; border-radius: 20px; padding: 20px; display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; }
-        .plant-emoji { font-size: 60px; margin-bottom: 10px; }
-        .plant-name { font-weight: bold; color: #2ecc71; font-size: 22px; }
-
-        .btn { border: none; padding: 12px; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; width: 95%; margin-top: 10px; color: white; transition: 0.3s; }
+        .page { display: none; } .active { display: block; }
+        .profile-card { background: linear-gradient(45deg, #2ecc71, #27ae60); border-radius: 15px; padding: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .coin-text { color: #f1c40f; font-weight: bold; font-size: 22px; }
+        .plant-card { background: #1c2533; border: 1.5px solid #34495e; border-radius: 20px; padding: 20px; text-align: center; margin-bottom: 15px; position: relative; }
+        .plant-emoji { font-size: 55px; margin-bottom: 10px; }
+        .reward-info { font-size: 13px; color: #f1c40f; margin-bottom: 5px; font-weight: bold; }
+        .btn { border: none; padding: 12px; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; color: white; transition: 0.3s; }
         .btn-start { background: #2ecc71; }
         .btn-mining { background: #5d6d7e; cursor: not-allowed; }
         .btn-claim { background: #e67e22; animation: pulse 1.5s infinite; }
         .btn-locked { background: #e74c3c; }
-        .btn-soon { background: #34495e; cursor: not-allowed; opacity: 0.6; }
-
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.03); } 100% { transform: scale(1); } }
-
-        .timer-text { font-size: 13px; color: #bdc3c7; margin-top: 5px; font-family: monospace; }
-        .lock-icon { position: absolute; top: 12px; right: 18px; color: #e74c3c; font-size: 18px; }
-        
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #162130; display: flex; justify-content: space-around; padding: 12px 0; border-top: 2px solid #2ecc71; }
-        .nav-item { color: #bdc3c7; text-decoration: none; font-size: 11px; display: flex; flex-direction: column; align-items: center; }
-        .active { color: #2ecc71; font-weight: bold; }
+        .nav-item { color: #bdc3c7; text-decoration: none; font-size: 11px; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+        .nav-item.selected { color: #2ecc71; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div class="profile-card">
-        <div class="user-icon">👤</div>
-        <div class="user-details">
-            <div class="user-name" id="username">User</div>
-            <div class="balance-container">
-                <span class="coin-text">🪙 <span id="balance">0</span></span>
+        <div style="display: flex; align-items: center; padding-left: 10px;">
+            <div id="username" style="font-weight:bold">User</div>
+        </div>
+        <div class="coin-text" style="padding-right: 15px;">🪙 <span id="balance">0</span></div>
+    </div>
+
+    <div id="home-page" class="page active">
+        <div class="plant-card">
+            <div class="plant-emoji">🌱</div>
+            <div style="font-weight:bold;">Aloe Vera</div>
+            <div class="reward-info">Get 10 Coins every 8 hours</div>
+            <div id="timer-1" style="font-size:12px; color:#bdc3c7;"></div>
+            <button id="btn-1" class="btn btn-start" onclick="processAction(1, 10)">Start Mining</button>
+        </div>
+
+        <div class="plant-card" id="card-2" style="border-color:#e74c3c;">
+            <div style="position: absolute; top:10px; right:15px;">🔒</div>
+            <div class="plant-emoji">🌿</div>
+            <div style="font-weight:bold;">Money Plant</div>
+            <div class="reward-info">Get 50 Coins every 8 hours</div>
+            <p id="lock-text-2" style="font-size:12px; color:#e74c3c">Condition: Invite 2 Friends to Unlock</p>
+            <button id="btn-2" class="btn btn-locked" onclick="showPage('refer-page', 'nav-refer')">Locked</button>
+        </div>
+
+        <div class="plant-card" id="card-3" style="border-color:#e74c3c;">
+            <div style="position: absolute; top:10px; right:15px;">🔒</div>
+            <div class="plant-emoji">🎋</div>
+            <div style="font-weight:bold;">Bamboo</div>
+            <div class="reward-info">Get 100 Coins every 8 hours</div>
+            <p id="lock-text-3" style="font-size:12px; color:#e74c3c">Condition: Invite 4 Friends to Unlock</p>
+            <button id="btn-3" class="btn btn-locked" onclick="showPage('refer-page', 'nav-refer')">Locked</button>
+        </div>
+
+        <div class="plant-card" id="card-4" style="border-color:#e74c3c;">
+            <div style="position: absolute; top:10px; right:15px;">🔒</div>
+            <div class="plant-emoji">🌻</div>
+            <div style="font-weight:bold;">Golden Tree</div>
+            <div class="reward-info">Get 200 Coins every 8 hours</div>
+            <p id="lock-text-4" style="font-size:12px; color:#e74c3c">Condition: Invite 6 Friends to Unlock</p>
+            <button id="btn-4" class="btn btn-locked" onclick="showPage('refer-page', 'nav-refer')">Locked</button>
+        </div>
+    </div>
+
+    <div id="refer-page" class="page">
+        <div class="plant-card">
+            <h2 style="color: #2ecc71;">Referral System</h2>
+            <p style="font-size: 14px;">Invite your friends to unlock more plants!</p>
+            <div style="font-size: 45px; color: #f1c40f; font-weight: bold;" id="refer-count">0</div>
+            <p>Total Referrals</p>
+            <button class="btn" style="background:#3498db;" onclick="inviteFriend()">Invite a Friend</button>
+            <div style="margin-top: 20px; text-align: left; font-size: 13px; color: #bdc3c7; background: #0b111a; padding: 10px; border-radius: 10px;">
+                • 2 Invites = Unlock Money Plant<br>
+                • 4 Invites = Unlock Bamboo<br>
+                • 6 Invites = Unlock Golden Tree
             </div>
         </div>
     </div>
 
-    <div class="plant-list">
-        <div class="plant-card">
-            <div class="plant-emoji">🌱</div>
-            <div class="plant-name">Aloe Vera (Free)</div>
-            <div style="font-size: 13px; color: #bdc3c7;">Reward: 10 Tokens every 8h</div>
-            <button id="btn-1" class="btn btn-start" onclick="processMining(1, 10)">Start Mining</button>
-            <div id="timer-1" class="timer-text"></div>
-        </div>
-
-        <div class="plant-card" style="border-color: #e74c3c;">
-            <div class="lock-icon">🔒</div>
-            <div class="plant-emoji">🌿</div>
-            <div class="plant-name">Money Plant</div>
-            <div style="font-size: 13px; color: #bdc3c7;">Reward: 50 Tokens every 8h</div>
-            <button class="btn btn-locked" onclick="tg.showAlert('এটি আনলক করতে ৩ জন বন্ধুকে রেফার করুন!')">Refer 3 Friends to Unlock</button>
-        </div>
-
-        <div class="plant-card" style="opacity: 0.6;">
-            <div class="lock-icon">🔒</div>
-            <div class="plant-emoji" style="filter: grayscale(1);">🎋</div>
-            <div class="plant-name" style="color: #bdc3c7;">Bamboo</div>
-            <div style="font-size: 12px; color: #95a5a6;">Currently Locked</div>
-            <button class="btn btn-soon">Coming Soon</button>
-        </div>
-
-        <div class="plant-card" style="opacity: 0.6;">
-            <div class="lock-icon">🔒</div>
-            <div class="plant-emoji" style="filter: grayscale(1);">🌻</div>
-            <div class="plant-name" style="color: #bdc3c7;">Golden Tree</div>
-            <div style="font-size: 12px; color: #95a5a6;">Currently Locked</div>
-            <button class="btn btn-soon">Coming Soon</button>
-        </div>
-    </div>
-
     <div class="bottom-nav">
-        <a href="#" class="nav-item active">🏠<span>Home</span></a>
-        <a href="#" class="nav-item">🛒<span>Shop</span></a>
-        <a href="#" class="nav-item">🏆<span>Leader</span></a>
-        <a href="#" class="nav-item">👥<span>Refer</span></a>
-        <a href="#" class="nav-item">💰<span>Withdraw</span></a>
+        <div class="nav-item selected" id="nav-home" onclick="showPage('home-page', 'nav-home')">🏠<span>Home</span></div>
+        <div class="nav-item" id="nav-refer" onclick="showPage('refer-page', 'nav-refer')">👥<span>Refer</span></div>
     </div>
 
     <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDwQJVaeZxsSpYJIA9Ibapa1GQDaFsXHZU",
+            authDomain: "plantfarming-c8ec9.firebaseapp.com",
+            projectId: "plantfarming-c8ec9",
+            storageBucket: "plantfarming-c8ec9.firebasestorage.app",
+            messagingSenderId: "36888987769",
+            appId: "1:36888987769:web:5c579ac628986a19d4bd28"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
         let tg = window.Telegram.WebApp;
         tg.expand();
+        const uid = tg.initDataUnsafe.user?.id || "local_user";
         document.getElementById('username').innerText = tg.initDataUnsafe.user?.first_name || "User";
 
         const AD_LINK = "https://omg10.com/4/10860458";
-        const MINING_TIME = 8 * 60 * 60 * 1000; 
+        const MINING_TIME = 8 * 60 * 60 * 1000;
 
-        let balance = parseInt(localStorage.getItem('plant_balance')) || 0;
-        document.getElementById('balance').innerText = balance;
+        db.ref('users/' + uid).on('value', (snap) => {
+            let data = snap.val() || { balance: 0, refers: 0 };
+            document.getElementById('balance').innerText = data.balance;
+            document.getElementById('refer-count').innerText = data.refers;
+            
+            updatePlant(1, 0, data.lastMining1, 10);
+            updatePlant(2, 2, data.lastMining2, 50);
+            updatePlant(3, 4, data.lastMining3, 100);
+            updatePlant(4, 6, data.lastMining4, 200);
+        });
 
-        function processMining(id, reward) {
-            let startTime = localStorage.getItem(`mining_start_${id}`);
+        function updatePlant(id, req, lastTime, reward) {
+            let refers = parseInt(document.getElementById('refer-count').innerText);
+            let btn = document.getElementById('btn-' + id);
+            let card = document.getElementById('card-' + id);
 
-            if (!startTime) {
-                tg.showConfirm("বিজ্ঞাপন দেখে মাইনিং শুরু করতে চান?", (confirmed) => {
-                    if (confirmed) {
-                        tg.openLink(AD_LINK);
-                        localStorage.setItem(`mining_start_${id}`, new Date().getTime());
-                        startTimer(id, reward);
-                    }
-                });
+            if (refers < req) {
+                btn.className = "btn btn-locked";
+                btn.innerText = "Locked";
+                return;
+            }
+
+            if (card) card.style.borderColor = "#2ecc71";
+            if (id > 1) document.getElementById('lock-text-' + id).innerText = "Status: Unlocked ✅";
+
+            if (!lastTime || lastTime == 0) {
+                btn.innerText = "Start Mining";
+                btn.className = "btn btn-start";
+                btn.onclick = () => processAction(id, reward, "start");
             } else {
-                let now = new Date().getTime();
-                if (now - startTime >= MINING_TIME) {
-                    tg.showConfirm("বিজ্ঞাপন দেখে ক্লেম করুন!", (confirmed) => {
-                        if (confirmed) {
-                            tg.openLink(AD_LINK);
-                            balance += reward;
-                            localStorage.setItem('plant_balance', balance);
-                            document.getElementById('balance').innerText = balance;
-                            localStorage.removeItem(`mining_start_${id}`);
-                            resetUI(id);
-                        }
-                    });
+                let diff = MINING_TIME - (Date.now() - lastTime);
+                if (diff <= 0) {
+                    btn.innerText = "Claim " + reward + " Coins";
+                    btn.className = "btn btn-claim";
+                    btn.onclick = () => processAction(id, reward, "claim");
+                } else {
+                    btn.className = "btn btn-mining";
+                    let h = Math.floor(diff / 3600000); let m = Math.floor((diff % 3600000) / 60000);
+                    btn.innerText = h + "h " + m + "m left";
+                    btn.onclick = null;
                 }
             }
         }
 
-        function startTimer(id, reward) {
-            const btn = document.getElementById(`btn-${id}`);
-            const timerDisplay = document.getElementById(`timer-${id}`);
-            
-            let interval = setInterval(() => {
-                let startTime = localStorage.getItem(`mining_start_${id}`);
-                if (!startTime) { clearInterval(interval); return; }
-
-                let now = new Date().getTime();
-                let distance = MINING_TIME - (now - startTime);
-
-                if (distance <= 0) {
-                    clearInterval(interval);
-                    btn.innerText = `Claim ${reward} Tokens`;
-                    btn.className = "btn btn-claim";
-                    timerDisplay.innerText = "Farming Complete!";
-                } else {
-                    btn.innerText = "Mining...";
-                    btn.className = "btn btn-mining";
-                    let h = Math.floor(distance / (1000 * 60 * 60));
-                    let m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                    let s = Math.floor((distance % (1000 * 60)) / 1000);
-                    timerDisplay.innerText = `Time: ${h}h ${m}m ${s}s`;
+        function processAction(id, reward, type) {
+            tg.showConfirm("Watch ad to continue?", (ok) => {
+                if (ok) {
+                    tg.openLink(AD_LINK);
+                    let updates = {};
+                    if (type === "start") {
+                        updates['lastMining' + id] = Date.now();
+                    } else {
+                        db.ref('users/' + uid).once('value').then(s => {
+                            updates['balance'] = (s.val().balance || 0) + reward;
+                            updates['lastMining' + id] = 0;
+                            db.ref('users/' + uid).update(updates);
+                        });
+                        return;
+                    }
+                    db.ref('users/' + uid).update(updates);
                 }
-            }, 1000);
+            });
         }
 
-        function resetUI(id) {
-            document.getElementById(`btn-${id}`).innerText = "Start Mining";
-            document.getElementById(`btn-${id}`).className = "btn btn-start";
-            document.getElementById(`timer-${id}`).innerText = "";
+        function inviteFriend() {
+            let link = "https://t.me/SotataTV_bot?start=" + uid; 
+            tg.openTelegramLink("https://t.me/share/url?url=" + encodeURIComponent(link) + "&text=Join my farming bot and earn coins! 🌱");
         }
 
-        window.onload = () => { if (localStorage.getItem('mining_start_1')) startTimer(1, 10); };
+        function showPage(pageId, navId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('selected'));
+            document.getElementById(navId).classList.add('selected');
+        }
     </script>
 </body>
 </html>
