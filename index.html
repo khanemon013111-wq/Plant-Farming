@@ -8,168 +8,201 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        :root { --primary: #00ff88; --bg: #0b0e11; --border: rgba(255,255,255,0.1); }
-        body { background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; }
-
-        /* Header */
-        .header { position: sticky; top: 0; background: rgba(11, 14, 17, 0.95); backdrop-filter: blur(15px); padding: 20px; text-align: center; border-bottom: 1px solid var(--border); z-index: 1000; }
-        .balance-val { font-size: 38px; font-weight: 800; color: var(--primary); }
-
-        /* Page Layout */
-        .page { display: none; padding: 20px; padding-bottom: 120px; }
-        .active-page { display: block; }
-
-        /* Large Plant Cards */
-        .plant-card {
-            background: rgba(255, 255, 255, 0.05); border: 1.5px solid var(--border);
-            border-radius: 25px; padding: 25px; margin-bottom: 20px;
-            display: flex; flex-direction: column; gap: 15px; position: relative;
+        :root {
+            --primary: #00ff88;
+            --bg: #0b0e11;
+            --card-bg: rgba(255, 255, 255, 0.08);
+            --border: rgba(255, 255, 255, 0.15);
         }
 
-        .plant-top { display: flex; align-items: center; gap: 20px; }
-        .plant-icon { font-size: 45px; background: rgba(255,255,255,0.05); width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; border-radius: 20px; }
-        .plant-details h3 { margin: 0; font-size: 22px; }
-        .plant-details p { margin: 5px 0 0; color: var(--primary); font-weight: bold; font-size: 15px; }
+        body {
+            background: var(--bg); color: #fff;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            margin: 0; padding: 0; overflow-x: hidden;
+        }
 
-        /* Requirement Badge */
-        .badge { display: inline-block; padding: 6px 12px; border-radius: 10px; font-size: 12px; font-weight: bold; margin-top: 5px; background: rgba(251, 191, 36, 0.1); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.2); }
+        /* 🌟 Slim & Sticky Premium Header 🌟 */
+        .sticky-header {
+            position: sticky; top: 0; z-index: 1000;
+            background: rgba(11, 14, 17, 0.9);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 8px 15px;
+            display: flex; align-items: center; justify-content: space-between;
+            height: 55px;
+        }
+
+        .user-profile { display: flex; align-items: center; gap: 10px; }
+        .user-avatar {
+            width: 38px; height: 38px;
+            background: linear-gradient(45deg, var(--primary), #008744);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 900; color: #000; font-size: 18px;
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.2);
+        }
+        .user-info h2 { margin: 0; font-size: 14px; font-weight: 700; color: #fff; }
+        .user-info p { margin: 0; font-size: 9px; color: var(--primary); font-weight: 800; letter-spacing: 1px; }
+
+        .balance-pill {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            padding: 6px 14px; border-radius: 20px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .balance-pill span { font-size: 16px; font-weight: 800; color: #fff; }
+        .coin-icon { font-size: 18px; }
+
+        /* --- Page & Large Plant Cards --- */
+        .page { display: none; padding: 20px; padding-bottom: 120px; animation: fadeIn 0.4s ease; }
+        .active-page { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .plant-card {
+            background: var(--card-bg);
+            border: 1.5px solid var(--border);
+            border-radius: 30px;
+            padding: 25px;
+            display: flex; flex-direction: column; gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .plant-header { display: flex; align-items: center; gap: 20px; }
+        .plant-icon {
+            font-size: 45px; background: rgba(255,255,255,0.05);
+            width: 80px; height: 80px; display: flex;
+            align-items: center; justify-content: center; border-radius: 22px;
+        }
+
+        .plant-title h3 { margin: 0; font-size: 22px; color: #fff; }
+        .plant-title p { margin: 5px 0 0; font-size: 15px; color: var(--primary); font-weight: 600; }
+
+        .badge { display: inline-block; padding: 8px 15px; border-radius: 12px; font-size: 13px; font-weight: bold; background: rgba(251, 191, 36, 0.1); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.2); }
         .unlocked-badge { background: rgba(0, 255, 136, 0.1); color: var(--primary); border: 1px solid rgba(0, 255, 136, 0.2); }
 
-        /* Buttons */
-        .btn-mine { width: 100%; padding: 18px; border-radius: 15px; border: none; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .btn-available { background: var(--primary); color: #000; box-shadow: 0 5px 15px rgba(0,255,136,0.3); }
+        .btn-mine { width: 100%; padding: 18px; border-radius: 18px; border: none; font-size: 18px; font-weight: 800; cursor: pointer; transition: 0.3s; }
+        .btn-available { background: var(--primary); color: #000; box-shadow: 0 8px 20px rgba(0,255,136,0.3); }
         .btn-locked { background: #222; color: #555; cursor: not-allowed; }
 
         /* Navigation */
-        .nav-bar { position: fixed; bottom: 0; width: 100%; background: #161a1e; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid var(--border); z-index: 2000; }
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: #161a1e; display: flex; justify-content: space-around; padding: 18px 0; border-top: 1px solid var(--border); z-index: 2000; }
         .nav-item { text-align: center; font-size: 12px; color: #666; cursor: pointer; flex: 1; }
         .nav-item.active { color: var(--primary); }
-        .nav-item span { font-size: 24px; display: block; }
+        .nav-item span { font-size: 26px; display: block; margin-bottom: 4px; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <small style="opacity: 0.6;">TOTAL BALANCE</small>
-        <div class="balance-val"><span id="main-balance">0</span> 🪙</div>
+    <!-- 🌟 Slim Fixed Header -->
+    <div class="sticky-header">
+        <div class="user-profile">
+            <div class="user-avatar" id="avatar-icon">👤</div>
+            <div class="user-info">
+                <h2 id="display-name">Guest Farmer</h2>
+                <p>MASTER FARMER</p>
+            </div>
+        </div>
+        <div class="balance-pill">
+            <span class="coin-icon">🪙</span>
+            <span id="main-balance">0.00</span>
+        </div>
     </div>
 
     <!-- HOME PAGE -->
     <div id="home" class="page active-page">
-        <!-- ১. Aloe Vera -->
-        <div class="plant-card">
-            <div class="plant-top"><div class="plant-icon">🌿</div><div class="plant-details"><h3>Aloe Vera</h3><p>Income: 10 Coins / 8h</p></div></div>
-            <div class="badge unlocked-badge" id="b1">✅ Free Unlocked</div>
-            <button class="btn-mine btn-available" id="btn1" onclick="mine(10)">Start Mining</button>
-        </div>
-
-        <!-- ২. Money Plant -->
-        <div class="plant-card">
-            <div class="plant-top"><div class="plant-icon">🌱</div><div class="plant-details"><h3>Money Plant</h3><p>Income: 25 Coins / 8h</p></div></div>
-            <div class="badge" id="b2">🔒 Requires 1 Referral</div>
-            <button class="btn-mine btn-locked" id="btn2">Locked</button>
-        </div>
-
-        <!-- ৩. Bamboo -->
-        <div class="plant-card">
-            <div class="plant-top"><div class="plant-icon">🎋</div><div class="plant-details"><h3>Bamboo</h3><p>Income: 50 Coins / 8h</p></div></div>
-            <div class="badge" id="b3">🔒 Requires 2 Referrals</div>
-            <button class="btn-mine btn-locked" id="btn3">Locked</button>
-        </div>
-
-        <!-- ৪. Cactus -->
-        <div class="plant-card">
-            <div class="plant-top"><div class="plant-icon">🌵</div><div class="plant-details"><h3>Cactus</h3><p>Income: 75 Coins / 8h</p></div></div>
-            <div class="badge" id="b4">🔒 Requires 3 Referrals</div>
-            <button class="btn-mine btn-locked" id="btn4">Locked</button>
-        </div>
-
-        <!-- ৫. Bonsai -->
-        <div class="plant-card">
-            <div class="plant-top"><div class="plant-icon">🌳</div><div class="plant-details"><h3>Bonsai</h3><p>Income: 100 Coins / 8h</p></div></div>
-            <div class="badge" id="b5">🔒 Requires 4 Referrals</div>
-            <button class="btn-mine btn-locked" id="btn5">Locked</button>
-        </div>
-
-        <!-- ৬. Oak Tree -->
-        <div class="plant-card">
-            <div class="plant-top"><div class="plant-icon">🌲</div><div class="plant-details"><h3>Oak Tree</h3><p>Income: 150 Coins / 8h</p></div></div>
-            <div class="badge" id="b6">🔒 Requires 6 Referrals</div>
-            <button class="btn-mine btn-locked" id="btn6">Locked</button>
-        </div>
-
-        <!-- ৭. Palm Tree -->
-        <div class="plant-card">
-            <div class="plant-top"><div class="plant-icon">🌴</div><div class="plant-details"><h3>Palm Tree</h3><p>Income: 200 Coins / 8h</p></div></div>
-            <div class="badge" id="b7">🔒 Requires 8 Referrals</div>
-            <button class="btn-mine btn-locked" id="btn7">Locked</button>
-        </div>
-
-        <!-- ৮. Golden Rose -->
-        <div class="plant-card">
-            <div class="plant-top"><div class="plant-icon">🌹</div><div class="plant-details"><h3>Golden Rose</h3><p>Income: 300 Coins / 8h</p></div></div>
-            <div class="badge" id="b8">🔒 Requires 10 Referrals</div>
-            <button class="btn-mine btn-locked" id="btn8">Locked</button>
-        </div>
-
-        <!-- ৯. Diamond Leaf -->
-        <div class="plant-card">
-            <div class="plant-top"><div class="plant-icon">💎</div><div class="plant-details"><h3>Diamond Leaf</h3><p>Income: 500 Coins / 8h</p></div></div>
-            <div class="badge" id="b9">💰 Buy from Admin</div>
-            <button class="btn-mine btn-locked" id="btn9">Locked</button>
-        </div>
-
-        <!-- ১০. VIP Tree -->
-        <div class="plant-card">
-            <div class="plant-top"><div class="plant-icon">👑</div><div class="plant-details"><h3>VIP Tree</h3><p>Income: 1000 Coins / 8h</p></div></div>
-            <div class="badge" id="b10">💰 Buy from Admin</div>
-            <button class="btn-mine btn-locked" id="btn10">Locked</button>
+        <div id="plant-container">
+            <!-- ১. Aloe Vera -->
+            <div class="plant-card">
+                <div class="plant-header"><div class="plant-icon">🌿</div><div class="plant-title"><h3>Aloe Vera</h3><p>Income: 10 Coins / 8h</p></div></div>
+                <div class="badge unlocked-badge" id="b1">✅ Free Unlocked</div>
+                <button class="btn-mine btn-available" id="btn1" onclick="mine(10)">Start Mining</button>
+            </div>
+            <!-- ২. Money Plant -->
+            <div class="plant-card">
+                <div class="plant-header"><div class="plant-icon">🌱</div><div class="plant-title"><h3>Money Plant</h3><p>Income: 25 Coins / 8h</p></div></div>
+                <div class="badge" id="b2">🔒 Requires 1 Referral</div>
+                <button class="btn-mine btn-locked" id="btn2">Locked</button>
+            </div>
+            <!-- ৩. Bamboo -->
+            <div class="plant-card">
+                <div class="plant-header"><div class="plant-icon">🎋</div><div class="plant-title"><h3>Bamboo</h3><p>Income: 50 Coins / 8h</p></div></div>
+                <div class="badge" id="b3">🔒 Requires 2 Referrals</div>
+                <button class="btn-mine btn-locked" id="btn3">Locked</button>
+            </div>
+            <!-- ৪. Cactus -->
+            <div class="plant-card">
+                <div class="plant-header"><div class="plant-icon">🌵</div><div class="plant-title"><h3>Cactus</h3><p>Income: 75 Coins / 8h</p></div></div>
+                <div class="badge" id="b4">🔒 Requires 3 Referrals</div>
+                <button class="btn-mine btn-locked" id="btn4">Locked</button>
+            </div>
+            <!-- ৫. Bonsai -->
+            <div class="plant-card">
+                <div class="plant-header"><div class="plant-icon">🌳</div><div class="plant-title"><h3>Bonsai</h3><p>Income: 100 Coins / 8h</p></div></div>
+                <div class="badge" id="b5">🔒 Requires 4 Referrals</div>
+                <button class="btn-mine btn-locked" id="btn5">Locked</button>
+            </div>
+            <!-- ৬. Oak Tree -->
+            <div class="plant-card">
+                <div class="plant-header"><div class="plant-icon">🌲</div><div class="plant-title"><h3>Oak Tree</h3><p>Income: 150 Coins / 8h</p></div></div>
+                <div class="badge" id="b6">🔒 Requires 6 Referrals</div>
+                <button class="btn-mine btn-locked" id="btn6">Locked</button>
+            </div>
+            <!-- ৭. Palm Tree -->
+            <div class="plant-card">
+                <div class="plant-header"><div class="plant-icon">🌴</div><div class="plant-title"><h3>Palm Tree</h3><p>Income: 200 Coins / 8h</p></div></div>
+                <div class="badge" id="b7">🔒 Requires 8 Referrals</div>
+                <button class="btn-mine btn-locked" id="btn7">Locked</button>
+            </div>
+            <!-- ৮. Golden Rose -->
+            <div class="plant-card">
+                <div class="plant-header"><div class="plant-icon">🌹</div><div class="plant-title"><h3>Golden Rose</h3><p>Income: 300 Coins / 8h</p></div></div>
+                <div class="badge" id="b8">🔒 Requires 10 Referrals</div>
+                <button class="btn-mine btn-locked" id="btn8">Locked</button>
+            </div>
+            <!-- ৯. Diamond Leaf -->
+            <div class="plant-card">
+                <div class="plant-header"><div class="plant-icon">💎</div><div class="plant-title"><h3>Diamond Leaf</h3><p>Income: 500 Coins / 8h</p></div></div>
+                <div class="badge" id="b9">💰 Buy from Admin</div>
+                <button class="btn-mine btn-locked" id="btn9">Locked</button>
+            </div>
+            <!-- ১০. VIP Tree -->
+            <div class="plant-card">
+                <div class="plant-header"><div class="plant-icon">👑</div><div class="plant-title"><h3>VIP Tree</h3><p>Income: 1000 Coins / 8h</p></div></div>
+                <div class="badge" id="b10">💰 Buy from Admin</div>
+                <button class="btn-mine btn-locked" id="btn10">Locked</button>
+            </div>
         </div>
     </div>
 
-    <!-- REFER PAGE -->
-    <div id="refer" class="page">
-        <h2 style="text-align: center;">Referral Stats</h2>
-        <div style="background: rgba(255,255,255,0.05); padding: 30px; border-radius: 20px; text-align: center;">
-            <p>Total Invites</p>
-            <h1 id="ref-count" style="font-size: 50px; color: var(--primary);">0</h1>
-            <button class="btn-mine btn-available" onclick="copyRef()">Copy Invite Link</button>
-        </div>
-    </div>
-
-    <!-- WITHDRAW PAGE -->
-    <div id="withdraw" class="page">
-        <h2 style="text-align: center;">Withdraw</h2>
-        <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 20px;">
-            <p>Select Method</p>
-            <select style="width:100%; padding:15px; border-radius:10px; background:#222; color:#fff; border:1px solid #444; margin-bottom:15px;">
-                <option>Bkash</option><option>Nagad</option><option>Binance</option>
-            </select>
-            <button class="btn-mine btn-available">Submit Request</button>
-        </div>
-    </div>
+    <!-- REFER, LEADER, WITHDRAW PAGES -->
+    <div id="refer" class="page"><h2 style="text-align:center">Referral Program</h2><p id="ref-count-text" style="text-align:center; font-size:40px; color:var(--primary);">0</p><button class="btn-mine btn-available" onclick="copyRef()">Copy Link</button></div>
+    <div id="leaderboard" class="page"><h2 style="text-align:center">Leaderboard</h2><p style="text-align:center; opacity:0.5;">Coming Soon...</p></div>
+    <div id="withdraw" class="page"><h2 style="text-align:center">Withdraw Wallet</h2><button class="btn-mine btn-available">Submit Request</button></div>
 
     <!-- NAV BAR -->
     <div class="nav-bar">
         <div class="nav-item active" onclick="showPage('home', this)"><span>🌿</span>Home</div>
         <div class="nav-item" onclick="showPage('refer', this)"><span>👥</span>Refer</div>
+        <div class="nav-item" onclick="showPage('leaderboard', this)"><span>🏆</span>Leader</div>
         <div class="nav-item" onclick="showPage('withdraw', this)"><span>💰</span>Wallet</div>
     </div>
 
     <script>
         // --- ফায়ারবেস কনফিগ ---
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            databaseURL: "YOUR_DATABASE_URL",
-            projectId: "YOUR_PROJECT_ID"
-        };
+        const firebaseConfig = { apiKey: "YOUR_API_KEY", databaseURL: "YOUR_DATABASE_URL", projectId: "YOUR_PROJECT_ID" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         const tg = window.Telegram.WebApp;
         tg.expand();
-        const uid = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : 12345;
 
-        // --- পেজ সুইচিং ---
+        // ইউজার তথ্য
+        const user = tg.initDataUnsafe.user;
+        const uid = user ? user.id : 12345;
+        const userName = user ? user.first_name : "Guest Farmer";
+
+        document.getElementById('display-name').innerText = userName;
+        document.getElementById('avatar-icon').innerText = userName.charAt(0);
+
         function showPage(pId, el) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -177,25 +210,22 @@
             el.classList.add('active');
         }
 
-        // --- আনলক লজিক ---
+        // আনলক লজিক
         function setUnlock(id, amount) {
             const badge = document.getElementById('b' + id);
             const btn = document.getElementById('btn' + id);
             if(badge && btn) {
-                badge.innerText = "✅ Unlocked";
-                badge.className = "badge unlocked-badge";
-                btn.className = "btn-mine btn-available";
-                btn.innerText = "Start Mining";
+                badge.innerText = "✅ Unlocked"; badge.className = "badge unlocked-badge";
+                btn.className = "btn-mine btn-available"; btn.innerText = "Start Mining";
                 btn.onclick = () => mine(amount);
             }
         }
 
-        // --- ডাটা সিঙ্ক ---
         db.ref('users/' + uid).on('value', (snap) => {
             const data = snap.val() || { balance: 0, referrals: 0 };
             document.getElementById('main-balance').innerText = data.balance.toLocaleString();
-            document.getElementById('ref-count').innerText = data.referrals;
-
+            if(document.getElementById('ref-count-text')) document.getElementById('ref-count-text').innerText = data.referrals;
+            
             // অটো আনলক চেক
             if(data.referrals >= 1) setUnlock(2, 25);
             if(data.referrals >= 2) setUnlock(3, 50);
@@ -204,7 +234,6 @@
             if(data.referrals >= 6) setUnlock(6, 150);
             if(data.referrals >= 8) setUnlock(7, 200);
             if(data.referrals >= 10) setUnlock(8, 300);
-            // পেইড টিয়ার চেক (আপনার ডাটাবেসে paidTiers থাকলে)
             if(data.paidTiers && data.paidTiers[9]) setUnlock(9, 500);
             if(data.paidTiers && data.paidTiers[10]) setUnlock(10, 1000);
         });
@@ -213,7 +242,6 @@
             tg.HapticFeedback.impactOccurred('medium');
             window.open("YOUR_MONETAG_LINK", "_blank");
             db.ref('users/' + uid + '/balance').transaction(b => (b || 0) + amount);
-            tg.showAlert(`Mining Started! ${amount} coins added.`);
         }
 
         function copyRef() {
@@ -223,4 +251,4 @@
         }
     </script>
 </body>
-</html>
+    </html>
